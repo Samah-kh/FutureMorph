@@ -1,3 +1,4 @@
+## Note: code under devolopment 
 # FutureMorph
 **Abstract** Understanding how anatomy evolves over time is essential for tracking disease progression, quantifying risk, and studying healthy development and aging.
 Existing approaches either synthesize future images without modeling geometry or perform longitudinal registration that require follow-up scans.
@@ -17,5 +18,5 @@ For training FutureMorph run the following command
 ## Inference 
 Inference script - soon 
 
-## Note: code under devolopment 
+
 
