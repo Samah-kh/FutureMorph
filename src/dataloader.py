@@ -105,7 +105,7 @@ def select_files(folder_path, prefix='mpr-3', suffix='mni_nor.nii.gz'):
 
 
 
-class Oasis3PairDataset(Dataset):
+class PairDataset(Dataset):
     def __init__(self, root_dir,cases_all,meta_data_dir,subjects_data_file, transform=None):
         self.root_dir = root_dir
         self.cases_all = cases_all
