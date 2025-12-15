@@ -11,7 +11,7 @@ FutureMorph predcits anatomically plausible, time-varying deformations parameter
 
 
 ## Training 
-For training FutureMorph run the command 
+For training FutureMorph run the following command 
 
 
 ## Inference 
