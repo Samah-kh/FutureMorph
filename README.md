@@ -13,14 +13,9 @@ FutureMorph predcits anatomically plausible, time-varying deformations parameter
 
 ![Deformation Animation](def_animation.gif)
 
-## Note: code under devolopment  
-
-## Training 
-For training FutureMorph run the following command 
+## Note: code under devolopment, training and inference scipts soon 
 
 
-## Inference 
-Inference script - soon 
 
 
 
