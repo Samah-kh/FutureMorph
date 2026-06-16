@@ -66,9 +66,6 @@ def crop_around_mask_center(image, mask, crop_size=(128, 128, 128)):
     return cropped
 
 def norm_images(I):
-    #I  = I- I.mean()
-    #I = I / I.std()
-    #I = (I - I.mean()) / I.std()
     I = (I - I.min())/ (I.max()-I.min()+1e-8)
     return I
 
@@ -94,7 +91,7 @@ def center_crop_3d(tensor, crop_size=(128, 128, 128)):
     return tensor[:, start_h:start_h+ch, start_w:start_w+cw, start_d:start_d+cd]
 
 
-def select_files(folder_path, prefix='mpr-3', suffix='mni_nor.nii.gz'):
+def select_files(folder_path, prefix, suffix):
     selected = [
         f for f in os.listdir(folder_path)
         if f.startswith(prefix) and f.endswith(suffix)
@@ -104,20 +101,21 @@ def select_files(folder_path, prefix='mpr-3', suffix='mni_nor.nii.gz'):
 
 
 class PairDataset(Dataset):
-    def __init__(self, root_dir,cases_all,meta_data_dir,subjects_data_file, transform=None):
+    def __init__(self, root_dir,cases_all,meta_data_dir,subjects_data_file,crop_size transform=None):
         self.root_dir = root_dir
         self.cases_all = cases_all
         self.transform = transform
         self.meta_data_dir = meta_data_dir
         self.meta_file = subjects_data_file
+        self.crop_size = crop_size
         self.pairs = self._find_visit_pairs()
         self.data_len = len(self.pairs)
     
-    def _get_sex_info(self,subject_id):
-        #### get the sex info from participants.tsv 
+    def _get_sex_info(self,par_i):
+         
         tsv_path = os.path.join(self.meta_file)
         tsv_df = pd.read_csv(tsv_path, sep='\t')
-        sex = tsv_df.loc[tsv_df['par'] == subject_id, 'sex']
+        sex = tsv_df.loc[tsv_df['par'] == par_i, 'sex']
         return sex.item() 
 
     def _get_meta_data(self, tsv_df, sex, visit1_name, visit2_name,max_delta,max_age):
@@ -139,9 +137,7 @@ class PairDataset(Dataset):
         age2 = tsv_df.loc[
             tsv_df['source_session] == visit2_name, 'age'
         ].values[0]
-        cdr =  tsv_df.loc[
-            tsv_df['source_session'] == visit1_name, 'cdr'
-        ].values[0]
+
         # Delta time (years between visits)
         delta_time = float(age2) - float(age1)
             
@@ -271,10 +267,10 @@ class PairDataset(Dataset):
 
 
  
-        img1 =  center_crop_3d(img1, (160, 192, 224))
-        img2=  center_crop_3d(img2, (160, 192, 224))
-        seg1 =  center_crop_3d(seg1, (160, 192, 224))
-        seg2 =  center_crop_3d(seg2, (160, 192, 224))
+        img1 =  center_crop_3d(img1, self.crop_size)
+        img2=  center_crop_3d(img2, self.crop_size)
+        seg1 =  center_crop_3d(seg1, self.crop_size)
+        seg2 =  center_crop_3d(seg2, self.crop_size)
 
 
         img1 = norm_images(img1)
