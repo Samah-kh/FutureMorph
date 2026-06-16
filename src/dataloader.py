@@ -89,9 +89,7 @@ def center_crop_3d(tensor, crop_size=(128, 128, 128)):
     start_h = (h - ch) // 2
     start_w = (w - cw) // 2
     start_d = (d - cd) // 2
-    #start_h = 0
-    #start_w = 0
-    #start_d = 0
+
 
     return tensor[:, start_h:start_h+ch, start_w:start_w+cw, start_d:start_d+cd]
 
@@ -111,38 +109,38 @@ class PairDataset(Dataset):
         self.cases_all = cases_all
         self.transform = transform
         self.meta_data_dir = meta_data_dir
-        self.meta_subject_file = subjects_data_file
+        self.meta_file = subjects_data_file
         self.pairs = self._find_visit_pairs()
         self.data_len = len(self.pairs)
     
     def _get_sex_info(self,subject_id):
         #### get the sex info from participants.tsv 
-        tsv_path = os.path.join(self.meta_subject_file)
+        tsv_path = os.path.join(self.meta_file)
         tsv_df = pd.read_csv(tsv_path, sep='\t')
-        sex = tsv_df.loc[tsv_df['participant_id'] == subject_id, 'sex']
+        sex = tsv_df.loc[tsv_df['par'] == subject_id, 'sex']
         return sex.item() 
 
     def _get_meta_data(self, tsv_df, sex, visit1_name, visit2_name,max_delta,max_age):
 
         # Age at baseline (visit1)
         age1 = tsv_df.loc[
-            tsv_df['source_session_id'] == visit1_name, 'age'
+            tsv_df['source_session'] == visit1_name, 'age'
         ].values[0]
         # MMSE at baseline
         mmse = tsv_df.loc[
-            tsv_df['source_session_id'] == visit1_name, 'mmse'
+            tsv_df['source_session'] == visit1_name, 'mmse'
         ].values[0]
         # Diagnosis at baseline
         diagnosis = tsv_df.loc[
-            tsv_df['source_session_id'] == visit1_name, 'dx1'
+            tsv_df['source_session'] == visit1_name, 'dx1'
         ].values[0]
 
         # Age at follow-up (visit2) → for delta_time
         age2 = tsv_df.loc[
-            tsv_df['source_session_id'] == visit2_name, 'age'
+            tsv_df['source_session] == visit2_name, 'age'
         ].values[0]
         cdr =  tsv_df.loc[
-            tsv_df['source_session_id'] == visit1_name, 'cdr'
+            tsv_df['source_session'] == visit1_name, 'cdr'
         ].values[0]
         # Delta time (years between visits)
         delta_time = float(age2) - float(age1)
@@ -170,13 +168,13 @@ class PairDataset(Dataset):
         tsv_df, _ = self.load_first_tsv_from_dir(meta_data_path)
         visit1_name =  visit_1_dir.split('-')[-1]
         visit2_name =  visit_2_dir.split('-')[-1]
-        age1_row = tsv_df.loc[tsv_df['source_session_id'] == visit1_name, 'age']
+        age1_row = tsv_df.loc[tsv_df['source_session'] == visit1_name, 'age']
 
         if not age1_row.empty:
             age1 = age1_row.values[0]
         else:
             age1 = None
-        age2_row = tsv_df.loc[tsv_df['source_session_id'] == visit2_name, 'age']
+        age2_row = tsv_df.loc[tsv_df['source_session'] == visit2_name, 'age']
         if not age2_row.empty:
             age2 = age2_row.values[0]
         else:
@@ -218,10 +216,9 @@ class PairDataset(Dataset):
                     'case': case_name,
                     'visit1': os.path.join(case_path, visit1),
                     'visit2': os.path.join(case_path, visit2)
-                    #'max_delta_t': max_delta,
-                    #'max_age': max_age
+
                 })
-        # compute global max values (after loop)
+  
         max_delta = max(all_deltas) if all_deltas else 0
         max_age = max(all_ages) if all_ages else 0
 
@@ -265,8 +262,8 @@ class PairDataset(Dataset):
         tsv_df, _ = self.load_first_tsv_from_dir(meta_data_path)
         visit1_name =  os.path.basename(os.path.normpath(pair_info['visit1'])).split('-')[-1]
         visit2_name =  os.path.basename(os.path.normpath(pair_info['visit2'])).split('-')[-1]
-        age_visit1 = tsv_df.loc[tsv_df['source_session_id'] == visit1_name, 'age'].values[0]
-        age_visit2 = tsv_df.loc[tsv_df['source_session_id'] == visit2_name, 'age'].values[0]
+        age_visit1 = tsv_df.loc[tsv_df['source_session'] == visit1_name, 'age'].values[0]
+        age_visit2 = tsv_df.loc[tsv_df['source_session'] == visit2_name, 'age'].values[0]
         delta_t = age_visit2 - age_visit1
         sex = self._get_sex_info(case_dir)
         meta_data_dict = self._get_meta_data(tsv_df, sex, visit1_name, visit2_name,max_delta_t,pair_info['max_age'])
@@ -292,10 +289,10 @@ class PairDataset(Dataset):
 
     def _load_image(self, visit_path):
  
-        image_files = os.listdir(os.path.join(visit_path,'anat'))
+        image_files = os.listdir(os.path.join(visit_path))
         image_file_selected = [
         f for f in image_files
-        if  "_T1w.nii_mni_norm" in f 
+        if  "mni_norm" in f 
         ]
         if len(image_file_selected)>1:
             image_file_selected = [
@@ -304,18 +301,18 @@ class PairDataset(Dataset):
                     ]
         mask_file_selected = [
         f for f in image_files
-        if  "synthseg" in f 
+        if  "seg" in f 
         ]
         if len(mask_file_selected)>1:
             mask_file_selected = [
                     f for f in mask_file_selected
-                    if "run-01_" in f or ( "_brainmasked_synthseg" not in f)
+                    if "run-01_" in f or ( "_masked_seg" not in f)
                     ]
-        image = nib.load(os.path.join(visit_path,'anat',image_file_selected[0])).get_fdata() 
+        image = nib.load(os.path.join(visit_path,image_file_selected[0])).get_fdata() 
         mask_exists = len(mask_file_selected) > 0
         seg = None
         if mask_exists:
-            seg = nib.load(os.path.join(visit_path,'anat',mask_file_selected[0])).get_fdata() 
+            seg = nib.load(os.path.join(visit_path,mask_file_selected[0])).get_fdata() 
 
         return torch.tensor(image).unsqueeze(0).float(),torch.tensor(seg).unsqueeze(0).float() 
       
