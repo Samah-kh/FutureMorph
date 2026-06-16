@@ -1,6 +1,6 @@
 This Repo has some implementation of the paper:
 **FutureMorph: Toward Predicting Future Deformation Fields in Longitudinal Imaging**,  Medical Imaging with Deep Learning (MIDL) 2026
-Khawaled S, Van Herten RL, Saluja R, Sabuncu MR
+
 
 # FutureMorph
 **Abstract** Understanding how anatomy evolves over time is essential for tracking disease progression, quantifying risk, and studying healthy development and aging.
