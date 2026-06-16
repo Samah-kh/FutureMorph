@@ -288,7 +288,7 @@ class PairDataset(Dataset):
         if len(image_file_selected)>1:
             image_file_selected = [
                     f for f in image_file_selected
-                    if "run-01_" in f 
+                    if "01_" in f 
                     ]
         mask_file_selected = [
         f for f in image_files
@@ -297,7 +297,7 @@ class PairDataset(Dataset):
         if len(mask_file_selected)>1:
             mask_file_selected = [
                     f for f in mask_file_selected
-                    if "run-01_" in f or ( "_masked_seg" not in f)
+                    if "01_" in f or ( "_masked_seg" not in f)
                     ]
         image = nib.load(os.path.join(visit_path,image_file_selected[0])).get_fdata() 
         mask_exists = len(mask_file_selected) > 0
