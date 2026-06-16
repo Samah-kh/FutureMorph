@@ -101,19 +101,19 @@ def select_files(folder_path, prefix, suffix):
 
 
 class PairDataset(Dataset):
-    def __init__(self, root_dir,cases_all,meta_data_dir,subjects_data_file,crop_size transform=None):
+    def __init__(self, root_dir,cases_all,md_dir,md_file,crop_size transform=None):
         self.root_dir = root_dir
         self.cases_all = cases_all
         self.transform = transform
-        self.meta_data_dir = meta_data_dir
-        self.meta_file = subjects_data_file
+        self.md_dir = md_dir
+        self.md_file = md_file
         self.crop_size = crop_size
         self.pairs = self._find_visit_pairs()
         self.data_len = len(self.pairs)
     
     def _get_sex_info(self,par_i):
          
-        tsv_path = os.path.join(self.meta_file)
+        tsv_path = os.path.join(self.md_file)
         tsv_df = pd.read_csv(tsv_path, sep='\t')
         sex = tsv_df.loc[tsv_df['par'] == par_i, 'sex']
         return sex.item() 
@@ -141,11 +141,6 @@ class PairDataset(Dataset):
         # Delta time (years between visits)
         delta_time = float(age2) - float(age1)
             
-        # Max age in dataset
-        #max_age = tsv_df['age'].max()
-
-        # Max delta_time across dataset (max age difference per subject/session pairs)
-        #max_delta_time = tsv_df['age'].max() - tsv_df['age'].min()
 
         return {
             'age': float(age1),
@@ -160,7 +155,7 @@ class PairDataset(Dataset):
 
         
     def _get_age_tsv(self,case_dir,visit_1_dir,visit_2_dir):
-        meta_data_path = os.path.join(self.meta_data_dir,case_dir)
+        meta_data_path = os.path.join(self.md_dir,case_dir)
         tsv_df, _ = self.load_first_tsv_from_dir(meta_data_path)
         visit1_name =  visit_1_dir.split('-')[-1]
         visit2_name =  visit_2_dir.split('-')[-1]
@@ -185,7 +180,7 @@ class PairDataset(Dataset):
         max_age = 0
         for case_name in self.cases_all: #os.listdir(self.root_dir)
             case_path = os.path.join(self.root_dir, case_name)
-            if not os.path.isdir(case_path) or not os.path.isdir(os.path.join(self.meta_data_dir,case_name)):
+            if not os.path.isdir(case_path) or not os.path.isdir(os.path.join(self.md_dir,case_name)):
                 continue
             visit_names = sorted([
                 v for v in os.listdir(case_path)
@@ -254,7 +249,7 @@ class PairDataset(Dataset):
         #if seg1 is None or seg2 is None:
             #return self.__getitem__((idx + 1) % len(self.pairs))
         case_dir = pair_info['case']
-        meta_data_path = os.path.join(self.meta_data_dir,case_dir)
+        meta_data_path = os.path.join(self.md_dir,case_dir)
         tsv_df, _ = self.load_first_tsv_from_dir(meta_data_path)
         visit1_name =  os.path.basename(os.path.normpath(pair_info['visit1'])).split('-')[-1]
         visit2_name =  os.path.basename(os.path.normpath(pair_info['visit2'])).split('-')[-1]
