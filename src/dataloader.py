@@ -258,7 +258,7 @@ class PairDataset(Dataset):
         delta_t = age_visit2 - age_visit1
         sex = self._get_sex_info(case_dir)
         meta_data_dict = self._get_meta_data(tsv_df, sex, visit1_name, visit2_name,max_delta_t,pair_info['max_age'])
-        meta_data_dict["id"] = case_dir
+        meta_data_dict["idx"] = case_dir
 
 
  
